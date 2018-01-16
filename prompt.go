@@ -59,7 +59,7 @@ func (p *Prompt) Run() {
 
 	bufCh := make(chan []byte, 128)
 	stopReadBufCh := make(chan struct{})
-	go readBuffer(bufCh, stopReadBufCh)
+	go p.readBuffer(bufCh, stopReadBufCh)
 
 	exitCh := make(chan int)
 	winSizeCh := make(chan *WinSize)
@@ -87,7 +87,7 @@ func (p *Prompt) Run() {
 
 				// Set raw mode
 				p.in.Setup()
-				go readBuffer(bufCh, stopReadBufCh)
+				go p.readBuffer(bufCh, stopReadBufCh)
 				go handleSignals(p.in, exitCh, winSizeCh, stopHandleSignalCh)
 			} else {
 				p.completion.Update(*p.buf.Document())
@@ -217,7 +217,7 @@ func (p *Prompt) Input() string {
 	p.renderer.Render(p.buf, p.completion)
 	bufCh := make(chan []byte, 128)
 	stopReadBufCh := make(chan struct{})
-	go readBuffer(bufCh, stopReadBufCh)
+	go p.readBuffer(bufCh, stopReadBufCh)
 
 	for {
 		select {
@@ -250,7 +250,7 @@ func (p *Prompt) tearDown() {
 	p.renderer.TearDown()
 }
 
-func readBuffer(bufCh chan []byte, stopCh chan struct{}) {
+func (p *Prompt) readBuffer(bufCh chan []byte, stopCh chan struct{}) {
 	buf := make([]byte, maxReadBytes)
 
 	log.Printf("[INFO] readBuffer start")
@@ -261,7 +261,7 @@ func readBuffer(bufCh chan []byte, stopCh chan struct{}) {
 			log.Print("[INFO] stop readBuffer")
 			return
 		default:
-			if n, err := syscall.Read(syscall.Stdin, buf); err == nil {
+			if n, err := p.in.Read(buf); err == nil {
 				cbuf := make([]byte, n)
 				copy(cbuf, buf[:n])
 				bufCh <- cbuf

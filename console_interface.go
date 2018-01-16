@@ -40,6 +40,8 @@ type ConsoleParser interface {
 	GetKey(b []byte) Key
 	// GetWinSize returns winsize struct which is the response of ioctl(2).
 	GetWinSize() *WinSize
+	// Read returns number of bytes read into the argument b
+	Read(b []byte) (int, error)
 }
 
 type ConsoleWriter interface {

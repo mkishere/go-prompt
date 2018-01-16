@@ -100,6 +100,10 @@ func (t *VT100Parser) GetWinSize() *WinSize {
 	}
 }
 
+func (t *VT100Parser) Read(b []byte) (int, error) {
+	return syscall.Read(t.fd, b)
+}
+
 var asciiSequences []*ASCIICode = []*ASCIICode{
 	{Key: Escape, ASCIICode: []byte{0x1b}},
 
